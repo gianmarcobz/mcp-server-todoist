@@ -258,3 +258,5 @@ Contributions welcome! Please read our contributing guidelines and submit pull r
 ---
 
 **Built with ❤️ by [Mario Mosca](https://mariomosca.com) - Showcasing the future of AI-human productivity collaboration**
+
+[![AI Pair Programming](https://img.shields.io/badge/Built%20with%20❤️%20using-AI%20Pair%20Programming-ff69b4?style=for-the-badge&logo=sparkles&logoColor=white)](https://mariomosca.com)
