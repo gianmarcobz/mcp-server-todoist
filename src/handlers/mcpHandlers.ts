@@ -11,7 +11,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import * as projectHandler from './projectHandler.js';
 import * as taskHandler from './taskHandler.js';
 import { CreateProjectParams, CreateTaskParams } from '../types/todoist.js';
-import { logger } from '../index.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Configura gli handler per il server MCP

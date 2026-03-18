@@ -3,7 +3,7 @@
  */
 import { getTodoistClient } from '../utils/todoistClient.js';
 import { TodoistProject, CreateProjectParams } from '../types/todoist.js';
-import { logger } from '../index.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Recupera tutti i progetti dell'utente

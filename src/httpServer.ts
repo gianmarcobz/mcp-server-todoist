@@ -6,27 +6,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { ListPromptsRequestSchema, GetPromptRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { setupHandlers } from './handlers/mcpHandlers.js';
 import { getTodoistClient } from './utils/todoistClient.js';
-import * as fs from 'fs';
-import * as path from 'path';
-
-export const logger = {
-  logFile: path.join(process.cwd(), 'todoist-mcp-server.log'),
-  _writeToFile(message: string) {
-    try { fs.appendFileSync(this.logFile, message + '\n'); } catch (error) {}
-  },
-  info(message: string, ...args: any[]) {
-    const formattedMessage = `[INFO] ${new Date().toISOString()} - ${message} ${args.length ? JSON.stringify(args) : ''}`;
-    this._writeToFile(formattedMessage);
-  },
-  warn(message: string, ...args: any[]) {
-    const formattedMessage = `[WARN] ${new Date().toISOString()} - ${message} ${args.length ? JSON.stringify(args) : ''}`;
-    this._writeToFile(formattedMessage);
-  },
-  error(message: string, ...args: any[]) {
-    const formattedMessage = `[ERROR] ${new Date().toISOString()} - ${message} ${args.length ? JSON.stringify(args) : ''}`;
-    this._writeToFile(formattedMessage);
-  }
-};
+import { logger } from './utils/logger.js';
 
 const server = new Server(
   {
