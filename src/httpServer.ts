@@ -8,23 +8,7 @@ import { setupHandlers } from './handlers/mcpHandlers.js';
 import { getTodoistClient } from './utils/todoistClient.js';
 import { logger } from './utils/logger.js';
 
-const server = new Server(
-  {
-    name: "todoist-server",
-    version: "0.1.0",
-    description: "Server MCP per Todoist. Usa le RISORSE per leggere progetti e attività (todoist://...), e i TOOLS per creare/modificare/eliminare."
-  },
-  {
-    capabilities: {
-      resources: {},
-      tools: {},
-      prompts: {},
-    } as any,
-  }
-);
-
-logger.info("Initializing server...");
-
+// Initialize Todoist client once
 const args = process.argv.slice(2);
 let apiToken: string | undefined;
 for (let i = 0; i < args.length; i++) {
@@ -35,22 +19,22 @@ for (let i = 0; i < args.length; i++) {
 }
 const todoistClient = getTodoistClient(apiToken);
 console.error("TODOIST_INIT: client=" + (todoistClient ? "OK" : "NULL") + " token=" + (process.env.TODOIST_API_TOKEN ? process.env.TODOIST_API_TOKEN.substring(0,8) + "..." : "MISSING"));
-if (!todoistClient) {
-  logger.warn("Il client Todoist non è inizializzato. Imposta TODOIST_API_TOKEN nel file .env o usa --token quando avvii il server");
+
+function createServer(): Server {
+  const server = new Server(
+    { name: "todoist-server", version: "0.1.0" },
+    { capabilities: { resources: {}, tools: {}, prompts: {} } as any }
+  );
+  setupHandlers(server);
+  server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+    prompts: [{ name: "todoist_overview", description: "Genera un riepilogo dello stato di Todoist" }]
+  }));
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    if (request.params.name !== "todoist_overview") throw new Error("Prompt sconosciuto");
+    return { messages: [{ role: "user", content: { type: "text", text: "Genera un riepilogo dello stato attuale di Todoist." } }] };
+  });
+  return server;
 }
-setupHandlers(server);
-server.setRequestHandler(ListPromptsRequestSchema, async () => ({
-  prompts: [{ name: "todoist_overview", description: "Genera un riepilogo dello stato di Todoist" }]
-}));
-server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-  if (request.params.name !== "todoist_overview") throw new Error("Prompt sconosciuto");
-  return {
-    messages: [{
-      role: "user",
-      content: { type: "text", text: "Genera un riepilogo dello stato attuale di Todoist, inclusi progetti e attività." }
-    }]
-  };
-});
 
 const app = express();
 app.use(express.json());
@@ -60,36 +44,35 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'mcp-session-id'],
 }));
 
-const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+const sessions: { [sessionId: string]: { transport: StreamableHTTPServerTransport; server: Server } } = {};
 
 app.post('/mcp', async (req, res) => {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  let transport: StreamableHTTPServerTransport;
 
-  if (sessionId && transports[sessionId]) {
-    transport = transports[sessionId];
+  if (sessionId && sessions[sessionId]) {
+    await sessions[sessionId].transport.handleRequest(req, res, req.body);
   } else {
-    transport = new StreamableHTTPServerTransport({
+    const server = createServer();
+    const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (sid) => { transports[sid] = transport; },
+      onsessioninitialized: (sid) => { sessions[sid] = { transport, server }; },
       enableDnsRebindingProtection: false,
     });
     transport.onclose = () => {
-      if (transport.sessionId) delete transports[transport.sessionId];
+      if (transport.sessionId) delete sessions[transport.sessionId];
     };
     await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
   }
-  await transport.handleRequest(req, res, req.body);
 });
 
 const handleSessionRequest = async (req: express.Request, res: express.Response) => {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  if (!sessionId || !transports[sessionId]) {
+  if (!sessionId || !sessions[sessionId]) {
     res.status(400).send('Invalid or missing session ID');
     return;
   }
-  const transport = transports[sessionId];
-  await transport.handleRequest(req, res);
+  await sessions[sessionId].transport.handleRequest(req, res);
 };
 
 app.get('/mcp', handleSessionRequest);
@@ -97,5 +80,5 @@ app.delete('/mcp', handleSessionRequest);
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
-  logger.info(`MCP Streamable HTTP server listening on port ${PORT}`);
+  console.error(`MCP server listening on port ${PORT}`);
 }); 
