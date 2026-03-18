@@ -16,18 +16,10 @@ const server = new Server(
   },
   {
     capabilities: {
-      resources: {
-        list: true,
-        read: true,
-        write: false,
-        delete: false,
-        description: "Usa le risorse per leggere progetti e attività. Esempi: todoist://today/tasks, todoist://project/{id}, todoist://task/{id}"
-      },
-      tools: {
-        description: "Usa i tools solo per operazioni di modifica come creare, completare o eliminare progetti e attività"
-      },
+      resources: {},
+      tools: {},
       prompts: {},
-    },
+    } as any,
   }
 );
 
