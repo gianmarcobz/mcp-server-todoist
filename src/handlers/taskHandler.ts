@@ -165,7 +165,7 @@ export async function getTodayTasks(): Promise<TodoistTask[] | null> {
   try {
     // Filtro per le attività di oggi
     const filter = "today|overdue";
-    const response = await todoistApi.getTasks({ filter });
+    const response = await todoistApi.getTasks({ filter } as any);
     
     // L'API Todoist potrebbe restituire un oggetto con 'results' o direttamente un array
     const tasks = Array.isArray(response) ? response : 

@@ -64,7 +64,7 @@ export async function createProject(params: CreateProjectParams): Promise<Todois
   }
 
   try {
-    const project = await todoistApi.addProject(params);
+    const project = await todoistApi.addProject(params as any);
     return project as unknown as TodoistProject;
   } catch (error) {
     logger.error("Errore nella creazione del progetto Todoist:", error);
