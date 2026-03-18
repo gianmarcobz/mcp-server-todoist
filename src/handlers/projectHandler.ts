@@ -11,7 +11,9 @@ import { logger } from '../utils/logger.js';
  */
 export async function getProjects(): Promise<TodoistProject[] | null> {
   const todoistApi = getTodoistClient();
+  console.error("TODOIST_DEBUG getProjects: client=" + (todoistApi ? "OK" : "NULL"));
   if (!todoistApi) {
+    console.error("TODOIST_DEBUG: client is NULL, token=" + (process.env.TODOIST_API_TOKEN ? "present" : "missing"));
     logger.error("Todoist API non inizializzata. Controlla il token API.");
     return null;
   }
@@ -24,8 +26,9 @@ export async function getProjects(): Promise<TodoistProject[] | null> {
     
     logger.info(`Progetti recuperati con successo: ${projects.length} progetti`);
     return projects as TodoistProject[];
-  } catch (error) {
-    logger.error("Errore nel recupero dei progetti Todoist:", error);
+  } catch (error: any) {
+    console.error("TODOIST_ERROR getProjects:", error?.message, error?.stack?.substring(0, 500));
+    logger.error("Errore nel recupero dei progetti Todoist:", error?.message);
     return null;
   }
 }

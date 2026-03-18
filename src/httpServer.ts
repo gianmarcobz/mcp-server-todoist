@@ -42,6 +42,7 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 const todoistClient = getTodoistClient(apiToken);
+console.error("TODOIST_INIT: client=" + (todoistClient ? "OK" : "NULL") + " token=" + (process.env.TODOIST_API_TOKEN ? process.env.TODOIST_API_TOKEN.substring(0,8) + "..." : "MISSING"));
 if (!todoistClient) {
   logger.warn("Il client Todoist non è inizializzato. Imposta TODOIST_API_TOKEN nel file .env o usa --token quando avvii il server");
 }

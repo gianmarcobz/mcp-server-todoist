@@ -27,6 +27,9 @@
     "dotenv": "^16.4.7",
     "express": "^5.1.0"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@types/node": "^20.11.24",
     "typescript": "^5.3.3"
